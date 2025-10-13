@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>প্রিমিয়াম ক্যালেন্ডার - ডেইলি রুটিন ট্র্যাকার</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #007AFF;
+            --secondary-color: #5856D6;
+            --success-color: #34C759;
+            --warning-color: #FF9500;
+            --danger-color: #FF3B30;
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #F2F2F7;
+            --bg-tertiary: #FFFFFF;
+            --text-primary: #000000;
+            --text-secondary: #8E8E93;
+            --border-color: #C6C6C8;
+            --shadow-light: rgba(0, 0, 0, 0.1);
+            --shadow-medium: rgba(0, 0, 0, 0.15);
+            --shadow-heavy: rgba(0, 0, 0, 0.2);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #0A84FF;
+            --secondary-color: #5E5CE6;
+            --success-color: #30D158;
+            --warning-color: #FF9F0A;
+            --danger-color: #FF453A;
+            --bg-primary: #000000;
+            --bg-secondary: #1C1C1E;
+            --bg-tertiary: #2C2C2E;
+            --text-primary: #FFFFFF;
+            --text-secondary: #8E8E93;
+            --border-color: #38383A;
+            --shadow-light: rgba(255, 255, 255, 0.05);
+            --shadow-medium: rgba(255, 255, 255, 0.1);
+            --shadow-heavy: rgba(255, 255, 255, 0.15);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: var(--transition);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-tertiary);
+            padding: 20px;
+            box-shadow: 0 2px 10px var(--shadow-light);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background: rgba(var(--bg-tertiary), 0.8);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .year-selector {
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 16px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .year-selector:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow-light);
+        }
+
+        .theme-toggle {
+            width: 50px;
+            height: 28px;
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            position: relative;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid var(--border-color);
+        }
+
+        .theme-toggle::before {
+            content: '🌙';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            top: 1px;
+            left: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        [data-theme="dark"] .theme-toggle::before {
+            content: '☀️';
+            transform: translateX(22px);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        /* Calendar Navigation */
+        .calendar-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: var(--bg-tertiary);
+            border-radius: 20px;
+            box-shadow: 0 4px 20px var(--shadow-light);
+        }
+
+        .nav-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            font-size: 18px;
+        }
+
+        .nav-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px var(--shadow-medium);
+        }
+
+        .month-year {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .month-year h2 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .settings-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            font-size: 18px;
+        }
+
+        .settings-btn:hover {
+            transform: rotate(90deg);
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Calendar Grid */
+        .calendar {
+            background: var(--bg-tertiary);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 20px var(--shadow-light);
+            overflow: hidden;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+
+        .day-header {
+            text-align: center;
+            font-weight: 600;
+            color: var(--text-secondary);
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            background: var(--bg-secondary);
+            border: 2px solid transparent;
+        }
+
+        .calendar-day:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px var(--shadow-medium);
+            border-color: var(--primary-color);
+        }
+
+        .calendar-day.today {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            font-weight: 600;
+        }
+
+        .calendar-day.other-month {
+            opacity: 0.3;
+        }
+
+        .calendar-day.has-tasks::after {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            width: 6px;
+            height: 6px;
+            background: var(--success-color);
+            border-radius: 50%;
+        }
+
+        .day-number {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .day-bangla {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 2px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-content {
+            background: var(--bg-tertiary);
+            border-radius: 24px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 85vh;
+            overflow: hidden;
+            animation: slideUp 0.3s ease;
+            box-shadow: 0 20px 60px var(--shadow-heavy);
+        }
+
+        .modal-header {
+            padding: 25px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .close-modal {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            font-size: 20px;
+        }
+
+        .close-modal:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 25px;
+            max-height: calc(85vh - 100px);
+            overflow-y: auto;
+        }
+
+        /* Prayer Section */
+        .prayer-section {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .prayer-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .prayer-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            transition: var(--transition);
+        }
+
+        .prayer-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px var(--shadow-light);
+        }
+
+        .prayer-checkbox {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: var(--success-color);
+        }
+
+        .prayer-label {
+            flex: 1;
+            margin-left: 12px;
+            font-size: 16px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .tahajjud-counter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .counter-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: none;
+            background: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            font-size: 14px;
+        }
+
+        .counter-btn:hover {
+            transform: scale(1.1);
+            background: var(--secondary-color);
+        }
+
+        .counter-value {
+            min-width: 30px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        /* Routine Section */
+        .routine-section {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .routine-periods {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .routine-period {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 15px;
+            transition: var(--transition);
+        }
+
+        .routine-period:hover {
+            box-shadow: 0 4px 12px var(--shadow-light);
+        }
+
+        .period-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        .routine-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: var(--transition);
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .routine-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+
+        /* Settings Modal */
+        .settings-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            z-index: 1001;
+        }
+
+        .settings-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .settings-content {
+            background: var(--bg-tertiary);
+            border-radius: 24px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow: hidden;
+            animation: slideUp 0.3s ease;
+        }
+
+        .settings-body {
+            padding: 25px;
+            max-height: calc(80vh - 100px);
+            overflow-y: auto;
+        }
+
+        .week-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .day-tab {
+            padding: 10px;
+            text-align: center;
+            border-radius: 10px;
+            background: var(--bg-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .day-tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .day-tab:hover {
+            transform: translateY(-2px);
+        }
+
+        .routine-editor {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .editor-period {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 20px;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--shadow-medium);
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-heavy);
+            display: none;
+            align-items: center;
+            gap: 10px;
+            animation: slideInRight 0.3s ease;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            display: flex;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .modal-body {
+                grid-template-columns: 1fr;
+            }
+            
+            .calendar-grid {
+                gap: 5px;
+            }
+            
+            .calendar-day {
+                font-size: 14px;
+            }
+            
+            .header h1 {
+                font-size: 20px;
+            }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <h1><i class="fas fa-calendar-alt"></i> প্রিমিয়াম ক্যালেন্ডার</h1>
+            <div class="header-controls">
+                <select class="year-selector" id="yearSelector">
+                    <option value="2026">২০২৬</option>
+                    <option value="2027">২০২৭</option>
+                </select>
+                <div class="theme-toggle" id="themeToggle"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="container">
+        <!-- Calendar Navigation -->
+        <div class="calendar-nav">
+            <button class="nav-button" id="prevMonth">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="month-year">
+                <h2 id="currentMonth">জানুয়ারি ২০২৬</h2>
+                <button class="settings-btn" id="monthSettings">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+            <button class="nav-button" id="nextMonth">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+
+        <!-- Calendar Grid -->
+        <div class="calendar">
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Calendar will be generated here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Daily Task Modal -->
+    <div class="modal" id="dailyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalDate">তারিখ: ১ জানুয়ারি ২০২৬</h3>
+                <button class="close-modal" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Prayer Section -->
+                <div class="prayer-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-pray"></i>
+                        নামাজের চেকলিস্ট
+                    </h4>
+                    <div class="prayer-list">
+                        <div class="prayer-item">
+                            <input type="checkbox" class="prayer-checkbox" id="fajr">
+                            <label for="fajr" class="prayer-label">ফজর (ফরজ)</label>
+                        </div>
+                        <div class="prayer-item">
+                            <input type="checkbox" class="prayer-checkbox" id="fajrSunnah">
+                            <label for="fajrSunnah" class="prayer-label">ফজর (সুন্নত)</label>
+                        </div>
+                        <div class="prayer-item">
+                            <input type="checkbox" class="prayer-checkbox" id="dhuhr">
+                            <label for="dhuhr" class="prayer-label">যোহর (ফরজ)</label>
+                        </div>
+                        <div class="prayer-item">
+                            <input type="checkbox" class="prayer-checkbox" id="dhuhrSunnah">
+                            <label for="dhuhrSunnah" class="prayer-label">যোহর (সুন্নত)</label>
+                        </div>
+                        <div class="prayer-item">
+                            <input type="checkbox" class="prayer-checkbox" id="asr">
+                            <label for="asr" class="prayer-label">আসর (ফরজ)</label>
+                        </div>
+                        <div class="prayer-item">
+                            <input type="checkbox" class="prayer-checkbox" id="asrSunnah">
+                            <label for="asrSunnah" class="prayer-label">আসর (সুন্নত)</label>
+                        </div>
+                        <div class="prayer-item">
+                            <input type="checkbox" class="prayer-checkbox" id="maghrib">
+                            <label for="maghrib" class="prayer-label">মাগরিব (ফরজ)</label>
+                        </div>
+                        <div class="prayer-item">
+                            <input type="checkbox" class="prayer-checkbox" id="maghribSunnah">
+                            <label for="maghribSunnah" class="prayer-label">মাগরিব (সুন্নত)</label>
+                        </div>
+                        <div class="prayer-item">
+                            <input type="checkbox" class="prayer-checkbox" id="isha">
+                            <label for="isha" class="prayer-label">ইশা (ফরজ)</label>
+                        </div>
+                        <div class="prayer-item">
+                            <input type="checkbox" class="prayer-checkbox" id="ishaSunnah">
+                            <label for="ishaSunnah" class="prayer-label">ইশা (সুন্নত)</label>
+                        </div>
+                        <div class="prayer-item">
+                            <input type="checkbox" class="prayer-checkbox" id="witr">
+                            <label for="witr" class="prayer-label">বিতর (ওয়াজিব)</label>
+                        </div>
+                        <div class="prayer-item">
+                            <input type="checkbox" class="prayer-checkbox" id="tahajjud">
+                            <label for="tahajjud" class="prayer-label">তাহাজ্জুদ</label>
+                            <div class="tahajjud-counter">
+                                <button class="counter-btn" id="tahajjudMinus">-</button>
+                                <span class="counter-value" id="tahajjudCount">0</span>
+                                <button class="counter-btn" id="tahajjudPlus">+2</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Routine Section -->
+                <div class="routine-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-tasks"></i>
+                        ডেইলি রুটিন
+                    </h4>
+                    <div class="routine-periods">
+                        <div class="routine-period">
+                            <div class="period-header">
+                                <i class="fas fa-sun"></i>
+                                ভোর
+                            </div>
+                            <textarea class="routine-input" id="dawnRoutine" placeholder="ভোরের রুটিন লিখুন..."></textarea>
+                        </div>
+                        <div class="routine-period">
+                            <div class="period-header">
+                                <i class="fas fa-cloud-sun"></i>
+                                সকাল
+                            </div>
+                            <textarea class="routine-input" id="morningRoutine" placeholder="সকালের রুটিন লিখুন..."></textarea>
+                        </div>
+                        <div class="routine-period">
+                            <div class="period-header">
+                                <i class="fas fa-sun"></i>
+                                দুপুর
+                            </div>
+                            <textarea class="routine-input" id="noonRoutine" placeholder="দুপুরের রুটিন লিখুন..."></textarea>
+                        </div>
+                        <div class="routine-period">
+                            <div class="period-header">
+                                <i class="fas fa-cloud"></i>
+                                বিকাল
+                            </div>
+                            <textarea class="routine-input" id="afternoonRoutine" placeholder="বিকালের রুটিন লিখুন..."></textarea>
+                        </div>
+                        <div class="routine-period">
+                            <div class="period-header">
+                                <i class="fas fa-moon"></i>
+                                রাত
+                            </div>
+                            <textarea class="routine-input" id="nightRoutine" placeholder="রাতের রুটিন লিখুন..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="settings-modal" id="settingsModal">
+        <div class="settings-content">
+            <div class="modal-header">
+                <h3>সাপ্তাহিক রুটিন সেটিংস</h3>
+                <button class="close-modal" id="closeSettings">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="settings-body">
+                <div class="week-days">
+                    <div class="day-tab active" data-day="0">শনি</div>
+                    <div class="day-tab" data-day="1">রবি</div>
+                    <div class="day-tab" data-day="2">সোম</div>
+                    <div class="day-tab" data-day="3">মঙ্গল</div>
+                    <div class="day-tab" data-day="4">বুধ</div>
+                    <div class="day-tab" data-day="5">বৃহস্পতি</div>
+                    <div class="day-tab" data-day="6">শুক্র</div>
+                </div>
+                <div class="routine-editor">
+                    <div class="editor-period">
+                        <div class="period-header">
+                            <i class="fas fa-sun"></i>
+                            ভোরের রুটিন
+                        </div>
+                        <textarea class="routine-input" id="editDawn" placeholder="ভোরের রুটিন লিখুন..."></textarea>
+                    </div>
+                    <div class="editor-period">
+                        <div class="period-header">
+                            <i class="fas fa-cloud-sun"></i>
+                            সকালের রুটিন
+                        </div>
+                        <textarea class="routine-input" id="editMorning" placeholder="সকালের রুটিন লিখুন..."></textarea>
+                    </div>
+                    <div class="editor-period">
+                        <div class="period-header">
+                            <i class="fas fa-sun"></i>
+                            দুপুরের রুটিন
+                        </div>
+                        <textarea class="routine-input" id="editNoon" placeholder="দুপুরের রুটিন লিখুন..."></textarea>
+                    </div>
+                    <div class="editor-period">
+                        <div class="period-header">
+                            <i class="fas fa-cloud"></i>
+                            বিকালের রুটিন
+                        </div>
+                        <textarea class="routine-input" id="editAfternoon" placeholder="বিকালের রুটিন লিখুন..."></textarea>
+                    </div>
+                    <div class="editor-period">
+                        <div class="period-header">
+                            <i class="fas fa-moon"></i>
+                            রাতের রুটিন
+                        </div>
+                        <textarea class="routine-input" id="editNight" placeholder="রাতের রুটিন লিখুন..."></textarea>
+                    </div>
+                </div>
+                <button class="save-btn" id="saveRoutine">
+                    <i class="fas fa-save"></i> মাসব্যাপী সেভ করুন
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle" style="color: var(--success-color);"></i>
+        <span id="toastMessage">সফলভাবে সেভ হয়েছে!</span>
+    </div>
+
+    <script>
+        // App State
+        let currentDate = new Date();
+        let currentYear = 2026;
+        let currentMonth = 0;
+        let selectedDate = null;
+        let tahajjudCount = 0;
+        let weeklyRoutines = {};
+        let dailyTasks = {};
+
+        // Bangla Months
+        const banglaMonths = [
+            'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন',
+            'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'
+        ];
+
+        const banglaDays = ['শনি', 'রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহস্পতি', 'শুক্র'];
+        const banglaDayNumbers = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯', '১০', 
+                                  '১১', '১২', '১৩', '১৪', '১৫', '১৬', '১৭', '১৮', '১৯', '২০',
+                                  '২১', '২২', '২৩', '২৪', '২৫', '২৬', '২৭', '২৮', '২৯', '৩০', '৩১'];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeApp();
+            loadFromLocalStorage();
+            renderCalendar();
+        });
+
+        function initializeApp() {
+            // Theme Toggle
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            
+            // Year Selector
+            document.getElementById('yearSelector').addEventListener('change', (e) => {
+                currentYear = parseInt(e.target.value);
+                renderCalendar();
+            });
+
+            // Navigation
+            document.getElementById('prevMonth').addEventListener('click', () => {
+                currentMonth--;
+                if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                }
+                renderCalendar();
+            });
+
+            document.getElementById('nextMonth').addEventListener('click', () => {
+                currentMonth++;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+                renderCalendar();
+            });
+
+            // Modal Controls
+            document.getElementById('closeModal').addEventListener('click', closeModal);
+            document.getElementById('dailyModal').addEventListener('click', (e) => {
+                if (e.target.id === 'dailyModal') closeModal();
+            });
+
+            // Settings Modal
+            document.getElementById('monthSettings').addEventListener('click', openSettings);
+            document.getElementById('closeSettings').addEventListener('click', closeSettings);
+            document.getElementById('settingsModal').addEventListener('click', (e) => {
+                if (e.target.id === 'settingsModal') closeSettings();
+            });
+
+            // Tahajjud Counter
+            document.getElementById('tahajjudPlus').addEventListener('click', () => {
+                tahajjudCount += 2;
+                document.getElementById('tahajjudCount').textContent = tahajjudCount;
+            });
+
+            document.getElementById('tahajjudMinus').addEventListener('click', () => {
+                if (tahajjudCount >= 2) {
+                    tahajjudCount -= 2;
+                    document.getElementById('tahajjudCount').textContent = tahajjudCount;
+                }
+            });
+
+            // Week Day Tabs
+            document.querySelectorAll('.day-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    loadWeekDayRoutine(parseInt(tab.dataset.day));
+                });
+            });
+
+            // Save Routine
+            document.getElementById('saveRoutine').addEventListener('click', saveMonthlyRoutine);
+
+            // Save daily tasks on change
+            document.querySelectorAll('.prayer-checkbox, .routine-input').forEach(input => {
+                input.addEventListener('change', saveDailyTasks);
+            });
+        }
+
+        function renderCalendar() {
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
+
+            // Update header
+            document.getElementById('currentMonth').textContent = 
+                `${banglaMonths[currentMonth]} ${currentYear}`;
+
+            // Clear calendar
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+
+            // Add day headers
+            banglaDays.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'day-header';
+                dayHeader.textContent = day;
+                grid.appendChild(dayHeader);
+            });
+
+            // Add previous month days
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const dayDiv = createDayElement(daysInPrevMonth - i, true, 
+                    new Date(currentYear, currentMonth - 1, daysInPrevMonth - i));
+                grid.appendChild(dayDiv);
+            }
+
+            // Add current month days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(currentYear, currentMonth, day);
+                const dayDiv = createDayElement(day, false, date);
+                
+                // Check if today
+                const today = new Date();
+                if (date.toDateString() === today.toDateString()) {
+                    dayDiv.classList.add('today');
+                }
+
+                // Check if has tasks
+                const dateKey = `${currentYear}-${currentMonth}-${day}`;
+                if (dailyTasks[dateKey]) {
+                    dayDiv.classList.add('has-tasks');
+                }
+
+                grid.appendChild(dayDiv);
+            }
+
+            // Add next month days
+            const totalCells = grid.children.length - 7; // Subtract headers
+            const remainingCells = 35 - totalCells;
+            for (let day = 1; day <= remainingCells; day++) {
+                const dayDiv = createDayElement(day, true, 
+                    new Date(currentYear, currentMonth + 1, day));
+                grid.appendChild(dayDiv);
+            }
+        }
+
+        function createDayElement(day, isOtherMonth, date) {
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'calendar-day';
+            if (isOtherMonth) dayDiv.classList.add('other-month');
+            
+            const dayNumber = document.createElement('div');
+            dayNumber.className = 'day-number';
+            dayNumber.textContent = day;
+            
+            const dayBangla = document.createElement('div');
+            dayBangla.className = 'day-bangla';
+            dayBangla.textContent = banglaDayNumbers[day];
+            
+            dayDiv.appendChild(dayNumber);
+            dayDiv.appendChild(dayBangla);
+            
+            if (!isOtherMonth) {
+                dayDiv.addEventListener('click', () => openDailyModal(date));
+            }
+            
+            return dayDiv;
+        }
+
+        function openDailyModal(date) {
+            selectedDate = date;
+            const dateStr = date.toLocaleDateString('bn-BD', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            document.getElementById('modalDate').textContent = `তারিখ: ${dateStr}`;
+            document.getElementById('dailyModal').classList.add('active');
+            
+            // Load saved data
+            loadDailyTasks(date);
+            
+            // Apply weekly routine
+            const dayOfWeek = date.getDay();
+            applyWeeklyRoutine(dayOfWeek);
+        }
+
+        function closeModal() {
+            document.getElementById('dailyModal').classList.remove('active');
+            saveDailyTasks();
+            renderCalendar();
+        }
+
+        function openSettings() {
+            document.getElementById('settingsModal').classList.add('active');
+            loadWeekDayRoutine(0);
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.remove('active');
+        }
+
+        function loadWeekDayRoutine(dayIndex) {
+            const monthKey = `${currentYear}-${currentMonth}`;
+            const routine = weeklyRoutines[monthKey]?.[dayIndex] || {
+                dawn: '',
+                morning: '',
+                noon: '',
+                afternoon: '',
+                night: ''
+            };
+            
+            document.getElementById('editDawn').value = routine.dawn;
+            document.getElementById('editMorning').value = routine.morning;
+            document.getElementById('editNoon').value = routine.noon;
+            document.getElementById('editAfternoon').value = routine.afternoon;
+            document.getElementById('editNight').value = routine.night;
+        }
+
+        function saveMonthlyRoutine() {
+            const activeDay = parseInt(document.querySelector('.day-tab.active').dataset.day);
+            const monthKey = `${currentYear}-${currentMonth}`;
+            
+            if (!weeklyRoutines[monthKey]) {
+                weeklyRoutines[monthKey] = {};
+            }
+            
+            weeklyRoutines[monthKey][activeDay] = {
+                dawn: document.getElementById('editDawn').value,
+                morning: document.getElementById('editMorning').value,
+                noon: document.getElementById('editNoon').value,
+                afternoon: document.getElementById('editAfternoon').value,
+                night: document.getElementById('editNight').value
+            };
+            
+            saveToLocalStorage();
+            showToast('সাপ্তাহিক রুটিন সফলভাবে সেভ হয়েছে!');
+            closeSettings();
+        }
+
+        function applyWeeklyRoutine(dayOfWeek) {
+            const monthKey = `${currentYear}-${currentMonth}`;
+            const routine = weeklyRoutines[monthKey]?.[dayOfWeek];
+            
+            if (routine) {
+                document.getElementById('dawnRoutine').value = routine.dawn;
+                document.getElementById('morningRoutine').value = routine.morning;
+                document.getElementById('noonRoutine').value = routine.noon;
+                document.getElementById('afternoonRoutine').value = routine.afternoon;
+                document.getElementById('nightRoutine').value = routine.night;
+            }
+        }
+
+        function loadDailyTasks(date) {
+            const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+            const tasks = dailyTasks[dateKey] || {};
+            
+            // Load prayer checkboxes
+            document.querySelectorAll('.prayer-checkbox').forEach(checkbox => {
+                checkbox.checked = tasks.prayers?.[checkbox.id] || false;
+            });
+            
+            // Load tahajjud count
+            tahajjudCount = tasks.tahajjudCount || 0;
+            document.getElementById('tahajjudCount').textContent = tahajjudCount;
+            
+            // Load routines
+            if (tasks.routines) {
+                document.getElementById('dawnRoutine').value = tasks.routines.dawn || '';
+                document.getElementById('morningRoutine').value = tasks.routines.morning || '';
+                document.getElementById('noonRoutine').value = tasks.routines.noon || '';
+                document.getElementById('afternoonRoutine').value = tasks.routines.afternoon || '';
+                document.getElementById('nightRoutine').value = tasks.routines.night || '';
+            }
+        }
+
+        function saveDailyTasks() {
+            if (!selectedDate) return;
+            
+            const dateKey = `${selectedDate.getFullYear()}-${selectedDate.getMonth()}-${selectedDate.getDate()}`;
+            
+            const prayers = {};
+            document.querySelectorAll('.prayer-checkbox').forEach(checkbox => {
+                prayers[checkbox.id] = checkbox.checked;
+            });
+            
+            dailyTasks[dateKey] = {
+                prayers: prayers,
+                tahajjudCount: tahajjudCount,
+                routines: {
+                    dawn: document.getElementById('dawnRoutine').value,
+                    morning: document.getElementById('morningRoutine').value,
+                    noon: document.getElementById('noonRoutine').value,
+                    afternoon: document.getElementById('afternoonRoutine').value,
+                    night: document.getElementById('nightRoutine').value
+                }
+            };
+            
+            saveToLocalStorage();
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('calendarTheme', document.documentElement.getAttribute('data-theme') || 'light');
+            localStorage.setItem('weeklyRoutines', JSON.stringify(weeklyRoutines));
+            localStorage.setItem('dailyTasks', JSON.stringify(dailyTasks));
+        }
+
+        function loadFromLocalStorage() {
+            // Load theme
+            const savedTheme = localStorage.getItem('calendarTheme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            
+            // Load routines
+            const savedRoutines = localStorage.getItem('weeklyRoutines');
+            if (savedRoutines) {
+                weeklyRoutines = JSON.parse(savedRoutines);
+            }
+            
+            // Load daily tasks
+            const savedTasks = localStorage.getItem('dailyTasks');
+            if (savedTasks) {
+                dailyTasks = JSON.parse(savedTasks);
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
